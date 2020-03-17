@@ -24,6 +24,7 @@ import ch.ehi.basics.logging.FileListener;
 import ch.ehi.basics.logging.StdListener;
 import ch.ehi.basics.settings.Settings;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.InhaltNatuerlichePersonGBType;
+import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.AnmeldungType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.BergwerkType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.EigentumAnteilType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.GemeinschaftType;
@@ -146,8 +147,6 @@ public class Gbdbs4bfs {
 		              .newInstance(JAXB_CONTEXT_PATH);
 		              um = jaxbContext.createUnmarshaller();
 		              ms = jaxbContext.createMarshaller();
-		              JAXBContext jaxbContextOut = JAXBContext
-		              .newInstance(ch.ehi.bfs.jaxb.eigtyp._1_0.ObjectFactory.class);
 		              ms.setProperty(Marshaller.JAXB_FRAGMENT, Boolean.TRUE);
 		          } catch (JAXBException e) {
 		              throw new IllegalStateException(e);
@@ -251,7 +250,7 @@ public class Gbdbs4bfs {
             convertRecht(ele);
         }else if(ele.getValue() instanceof PersonGBType){
             convertPerson(ele);
-        }else if(ele.getValue() instanceof ch.ehi.bfs.jaxb.gbbasistypen._2_1.AnmeldungType){
+        }else if(ele.getValue() instanceof AnmeldungType){
         }else{
             throw new IllegalArgumentException("unexpected type "+ele.getValue().getClass());
         }
