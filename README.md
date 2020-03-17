@@ -11,7 +11,7 @@ For the current version of gbdbs4bfs, you will need a JRE (Java Runtime Environm
 The JRE (Java Runtime Environment) can be downloaded for free from the Website <http://www.java.com/>.
 
 ## Software Download 
-<http://http://jars.umleditor.org/ch/ehi/gbdbs4bfs>
+<http://jars.umleditor.org/ch/ehi/gbdbs4bfs>
 
 ## Installing gbdbs4bfs
 To install the gbdbs4bfs, choose a directory and extract the distribution gbdbs4bfs-{version}-bin.zip file there. 
