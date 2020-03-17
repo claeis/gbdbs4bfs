@@ -1,0 +1,6 @@
+﻿2.0.3 2011-09-21 ceis
+*********************
+- Id's in getrennten Namespace ausgelagert
+- pattern fuer BerechtigteId, RechtId, PersonId, GrundstueckNummer hinzugefuegt/definiert
+
+

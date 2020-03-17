@@ -1,0 +1,203 @@
+// Apply the java plugin to add support for Java
+apply plugin: 'java'
+apply plugin: 'maven'
+
+version '1.0.0'+System.getProperty('release','-SNAPSHOT')
+group 'ch.ehi'
+
+
+sourceCompatibility = "1.8" 
+targetCompatibility = "1.8"
+compileJava.options.encoding = 'US-ASCII'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    // Use jcenter for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    jcenter()
+    maven {
+        url "http://jars.interlis.ch"
+    }
+}
+
+Properties properties = new Properties()
+File propFile=project.rootProject.file('user.properties')
+if(propFile.exists()){
+	properties.load(propFile.newDataInputStream())
+}
+def git = System.getProperty('git',properties.get('git','git'))
+def repos_pwd = System.getProperty('repos_pwd',properties.get('repos_pwd','repos_pwd'))
+def repos_usr = System.getProperty('repos_usr',properties.get('repos_usr','repos_usr'))
+def repos_url = System.getProperty('repos_url',properties.get('repos_url','repos_url'))
+
+
+def getGitHash = { ->
+    def stdout = new ByteArrayOutputStream()
+    exec {
+        commandLine git, 'rev-parse', 'HEAD'
+        standardOutput = stdout
+    }
+    return stdout.toString().trim()
+}
+
+def generatedResources = "$buildDir/generated-resources/main"
+def generatedXjcSources = "$buildDir/xjc/java"
+
+sourceSets {
+    main {
+    	output.dir(generatedResources, builtBy: 'generateMyResources')
+        java {
+            srcDirs = ['src',"$generatedXjcSources"]
+        }
+    }
+}
+
+task generateMyResources {
+	doLast {
+		def versionProps = new Properties()
+		versionProps.setProperty('version', "$project.version")
+		versionProps.setProperty('versionCommit', getGitHash())
+		def versionPropsFile = new File(generatedResources,"ch/ehi/gbdbs4bfs/Version.properties")
+		versionPropsFile.getParentFile().mkdirs();
+		versionProps.store(versionPropsFile.newWriter(), null);
+	}
+}
+
+
+configurations {
+    jaxb
+    deployerJars
+}
+
+dependencies {
+    compile group: 'ch.ehi', name: 'ehibasics', version: '1.2.0'
+	compile	group: 'javax.xml.bind',name:'jaxb-api', version:'2.3.0'
+	compile	group: 'com.sun.xml.bind',name:'jaxb-core', version:'2.3.0'
+	compile	group: 'com.sun.xml.bind',name:'jaxb-impl', version:'2.3.0'
+	compile group: 'javax.activation', name: 'activation', version: '1.1.1'
+
+    
+    testCompile 'junit:junit:4.12'
+    
+	jaxb (
+		'com.sun.xml.bind:jaxb-xjc:2.2.7',
+		'com.sun.xml.bind:jaxb-impl:2.2.7'
+    )
+    deployerJars "org.apache.maven.wagon:wagon-ftp:3.3.3"
+    deployerJars "org.apache.maven.wagon:wagon-ssh:3.3.3"
+}
+
+task jaxb {
+    System.setProperty('javax.xml.accessExternalSchema', 'all')
+    def jaxbTargetDir = file("$generatedXjcSources")
+    inputs.files fileTree(dir: 'xsd', include: ['*.xsd'])
+    inputs.files fileTree(dir: 'xjb', include: ['*.xjb'])
+    outputs.dir "$generatedXjcSources"
+
+    doLast {
+        jaxbTargetDir.mkdirs()
+
+        ant.taskdef(
+			name: 'xjc',
+			classname: 'com.sun.tools.xjc.XJCTask',
+			classpath: configurations.jaxb.asPath
+        )
+        ant.jaxbTargetDir = jaxbTargetDir
+
+        ant.xjc(
+			destdir: '${jaxbTargetDir}',
+			language: 'XMLSCHEMA',
+			extension: true
+        ){
+            schema(dir: "xsd", includes: "**/*.xsd")
+            binding(dir: "xjb", includes: "*.xjb")
+        }
+    }
+}
+
+compileJava.dependsOn jaxb
+
+jar {
+  enabled = true
+  manifest {
+    attributes(
+      "Main-Class": 'ch.ehi.gbdbs4bfs.Main',
+      "Class-Path": configurations.runtimeClasspath.collect { 'libs/'+it.getName() }.join(' '))
+  }
+}
+
+task bindist(type: Zip){
+	group = BasePlugin.BUILD_GROUP
+    description = 'Assembles the binary distribution of this project'
+	
+	baseName = project.name
+	destinationDir = file('dist')
+	from jar
+	into('libs'){
+		from configurations.runtimeClasspath
+		//def jars=[]
+		//subprojects.each {
+        //	jars+=it.libsDir
+        //}
+        //from jars
+	}
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+javadoc{
+	failOnError = false
+	options.addBooleanOption 'Xdoclint:none', true
+	//options.addStringOption('Xdoclint:none', '-quiet')
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives sourcesJar
+    archives javadocJar
+	archives(bindist.archivePath) {
+        type 'zip'
+        classifier 'bindist'
+        builtBy bindist
+    }
+}
+
+def githubRepoUrl = 'https://github.com/claeis/gbdbs4bfs'
+
+def pomConfig = {
+    licenses {
+        license {
+            name "LGPL 2.1"
+            url "https://github.com/claeis/gbdbs4bfs/blob/master/LICENSE"
+        }
+    }
+    developers {
+        developer {
+            id "claeis"
+            name "Claude Eisenhut"
+            email "ce@eisenhutinformatik.ch"
+        }
+    }
+
+    scm {
+        url githubRepoUrl
+    }
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+        	configuration = configurations.deployerJars
+			repository(url: repos_url){
+            	authentication(userName: repos_usr, password: repos_pwd)
+            }
+        }
+    }
+}
