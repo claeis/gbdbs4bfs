@@ -1,0 +1,3 @@
+LATEST VERSION
+-----------------------------
+- report wrong xml file format as error

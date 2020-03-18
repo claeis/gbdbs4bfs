@@ -160,7 +160,9 @@ public class Gbdbs4bfs {
 	            do{
 	                ev=xmlr.nextEvent();
 	            }while(!(ev instanceof StartElement));
-	            if(ev.asStartElement().getName().equals(GBDBS_21)) {
+	            if(!ev.asStartElement().getName().equals(GBDBS_21)) { 
+	                EhiLogger.logError("not a GBDBS 2.1 transfer file (" +ev.asStartElement().getName()+")");
+	            }else{
 	                out.add(xmlef.createStartDocument());
 	                out.add(ev);
 	                ev=xmlr.nextEvent();
