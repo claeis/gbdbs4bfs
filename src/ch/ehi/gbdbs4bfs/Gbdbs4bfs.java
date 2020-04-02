@@ -135,8 +135,8 @@ public class Gbdbs4bfs {
 		    XMLEventFactory xmlef=null;
 		    Unmarshaller um=null;
 		    XMLEventReader xmlr = null;
-            java.io.FileOutputStream reducedStream = null;
-            java.io.FileInputStream fullStream = null;
+            java.io.OutputStream reducedStream = null;
+            java.io.InputStream fullStream = null;
 			try{
 				
 		        xmlif = XMLInputFactory.newInstance();
@@ -151,9 +151,9 @@ public class Gbdbs4bfs {
 		          } catch (JAXBException e) {
 		              throw new IllegalStateException(e);
 		          }
-                reducedStream = new java.io.FileOutputStream(reducedFile);
+                reducedStream = new java.io.BufferedOutputStream(new java.io.FileOutputStream(reducedFile));
                 out = xmlof.createXMLEventWriter(reducedStream, "UTF-8");
-                fullStream = new java.io.FileInputStream(fullFile);
+                fullStream = new java.io.BufferedInputStream(new java.io.FileInputStream(fullFile));
                 xmlr = xmlif.createXMLEventReader(fullStream);
                 XMLEvent ev = null;
 	            // move to the root element and check its name.
