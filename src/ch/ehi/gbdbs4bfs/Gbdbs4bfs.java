@@ -85,6 +85,7 @@ public class Gbdbs4bfs {
     private Marshaller ms = null;
     private XMLEventWriter out = null;
     private ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.ObjectFactory of=null;
+    private long personIdx=0;
 	public static boolean convert(
 			File fullFile,
 			File reducedFile,
@@ -258,6 +259,7 @@ public class Gbdbs4bfs {
         }
     }
     private void convertPerson(JAXBElement<? extends PersonGBType> ele) throws JAXBException {
+        personIdx++;
         JAXBElement<? extends PersonGBType> newele=null;
         if(ele.getValue() instanceof GemeinschaftType) {
             GemeinschaftType val=new GemeinschaftType();
@@ -286,7 +288,10 @@ public class Gbdbs4bfs {
                     val.setBisTagebuchDatumZeit(inhalt.getBisTagebuchDatumZeit());
                     val.setBisTagebuchNummer(inhalt.getBisTagebuchNummer());
                     val.setBisIdx(inhalt.getBisIdx());
-                    val.setName(((InhaltGemeinschaftType) inhalt).getName());
+                    String name=((InhaltGemeinschaftType) inhalt).getName();
+                    if(name!=null) {
+                        val.setName("Gemeinschaft"+personIdx);
+                    }
                     val.setArt(((InhaltGemeinschaftType) inhalt).getArt());
                     newinhalt=of.createInhaltGemeinschaft(val);
                 }else if(inhalt instanceof InhaltJuristischePersonGBType) {
@@ -318,13 +323,14 @@ public class Gbdbs4bfs {
                     val.setBisTagebuchNummer(inhalt.getBisTagebuchNummer());
                     val.setBisIdx(inhalt.getBisIdx());
                     InhaltNatuerlichePersonGBType np=(InhaltNatuerlichePersonGBType)inhalt;
-                    val.setName(np.getName());
-                    val.setVornamen(np.getVornamen());
-                    val.setGeburtsjahr(np.getGeburtsjahr());
-                    val.setGeburtsmonat(np.getGeburtsmonat());
-                    val.setGeburtstag(np.getGeburtstag());
-                    val.setHeimatort(np.getHeimatort());
-                    val.setStaatsangehoerigkeit(np.getStaatsangehoerigkeit());
+                    String name=np.getName();
+                    if(name!=null) {
+                        val.setName("Name"+personIdx);
+                    }
+                    String vornamen=np.getVornamen();
+                    if(vornamen!=null) {
+                        val.setVornamen("Vornamen"+personIdx);
+                    }
                     newinhalt=of.createInhaltNatuerlichePersonGB(val);
                 }
                 newele.getValue().getInhaltPersonGB().add(newinhalt);
