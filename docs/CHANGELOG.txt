@@ -1,5 +1,8 @@
 LATEST VERSION
 -----------------------------
+
+1.1.0 2021-04-14
+-----------------------------
 - filter kantPersNr
 - stop filtering Gemeinschaft.Name 
 - stop filtering NatuerlichePersonGB Name, Vornamen, Geburtsjahr, Geburtsmonat, Geburtstag, Heimatort, Staatsangehoerigkeit
