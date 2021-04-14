@@ -1,4 +1,6 @@
 LATEST VERSION
 -----------------------------
 - filter kantPersNr
+- stop filtering Gemeinschaft.Name 
+- stop filtering NatuerlichePersonGB Name, Vornamen, Geburtsjahr, Geburtsmonat, Geburtstag, Heimatort, Staatsangehoerigkeit
 - report wrong xml file format as error

@@ -372,10 +372,7 @@ public class Gbdbs4bfs {
                     val.setBisTagebuchDatumZeit(inhalt.getBisTagebuchDatumZeit());
                     val.setBisTagebuchNummer(inhalt.getBisTagebuchNummer());
                     val.setBisIdx(inhalt.getBisIdx());
-                    String name=((InhaltGemeinschaftType) inhalt).getName();
-                    if(name!=null) {
-                        val.setName("Gemeinschaft"+personIdx);
-                    }
+                    val.setName(((InhaltGemeinschaftType) inhalt).getName());
                     val.setArt(((InhaltGemeinschaftType) inhalt).getArt());
                     newinhalt=of.createInhaltGemeinschaft(val);
                 }else if(inhalt instanceof InhaltJuristischePersonGBType) {
@@ -407,14 +404,15 @@ public class Gbdbs4bfs {
                     val.setBisTagebuchNummer(inhalt.getBisTagebuchNummer());
                     val.setBisIdx(inhalt.getBisIdx());
                     InhaltNatuerlichePersonGBType np=(InhaltNatuerlichePersonGBType)inhalt;
-                    String name=np.getName();
-                    if(name!=null) {
-                        val.setName("Name"+personIdx);
-                    }
-                    String vornamen=np.getVornamen();
-                    if(vornamen!=null) {
-                        val.setVornamen("Vornamen"+personIdx);
-                    }
+                    val.setName(np.getName());
+                    val.setVornamen(np.getVornamen());
+                    val.setGeburtsjahr(np.getGeburtsjahr());
+                    val.setGeburtsmonat(np.getGeburtsmonat());
+                    val.setGeburtstag(np.getGeburtstag());
+                    //val.setGeschlecht(np.getGeschlecht());
+                    val.setHeimatort(np.getHeimatort());
+                    val.setStaatsangehoerigkeit(np.getStaatsangehoerigkeit());
+
                     newinhalt=of.createInhaltNatuerlichePersonGB(val);
                 }
                 newele.getValue().getInhaltPersonGB().add(newinhalt);
