@@ -1,3 +1,4 @@
 LATEST VERSION
 -----------------------------
+- filter kantPersNr
 - report wrong xml file format as error
