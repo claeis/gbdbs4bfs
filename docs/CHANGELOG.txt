@@ -1,6 +1,10 @@
 LATEST VERSION
 -----------------------------
 
+1.2.0 2021-06-08
+-----------------------------
+- JuristischePersonGB/PersonStamm nicht filtern
+
 1.1.0 2021-04-14
 -----------------------------
 - filter kantPersNr

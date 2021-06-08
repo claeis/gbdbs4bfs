@@ -354,6 +354,7 @@ public class Gbdbs4bfs {
         }else if(ele.getValue() instanceof JuristischePersonGBType) {
             JuristischePersonGBType val=new JuristischePersonGBType();
             newele=of.createJuristischePersonGB(val);
+            val.setPersonStamm(ele.getValue().getPersonStamm());
         }else if(ele.getValue() instanceof NatuerlichePersonGBType) {
             NatuerlichePersonGBType val=new NatuerlichePersonGBType();
             newele=of.createNatuerlichePersonGB(val);
