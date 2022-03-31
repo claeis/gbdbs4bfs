@@ -29,7 +29,9 @@ import ch.ehi.basics.settings.Settings;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.InhaltNatuerlichePersonGBType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasisid._2_1.PersonIdDefType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.AnmeldungType;
+import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.BerechtigteRefBegruendet;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.BergwerkType;
+import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.DienstbarkeitType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.EigentumAnteilType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.GemeinschaftType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.GewoehnlichesMiteigentumType;
@@ -40,6 +42,7 @@ import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.InhaltJuristischePersonGBType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.InhaltPersonGBType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.JuristischePersonGBType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.KonzessionType;
+import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.LastRechtDienstbarkeitType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.LiegenschaftType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.MiteigentumsAnteilType;
 import ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.NatuerlichePersonGBType;
@@ -78,17 +81,12 @@ public class Gbdbs4bfs {
     public static final String gbdbs21Ns = "http://schemas.geo.admin.ch/BJ/TGBV/GBDBS/2.1";
     public static final String gbdbsTypen21Ns = "http://schemas.geo.admin.ch/BJ/TGBV/GBBasisTypen/2.1";
     public static final String gbdbsDatei21Ns = "http://schemas.geo.admin.ch/BJ/TGBV/GBDBS-Datei/2.1";
-    private static final QName GBDBS_20 = new QName(gbdbsDateiNs,"GBDBS");
-    private static final QName HEADERSECTION_20 = new QName(gbdbsDateiNs,"HEADERSECTION");
-    private static final QName DATASECTION_20 = new QName(gbdbsDateiNs,"DATASECTION");
-    private static final QName VOLLBESTAND_20 = new QName(gbdbsDateiNs,"Vollbestand");
     public static final QName GBDBS_21 = new QName(gbdbsDatei21Ns,"GBDBS");
     public static final QName HEADERSECTION_21 = new QName(gbdbsDatei21Ns,"HEADERSECTION");
     public static final QName DATASECTION_21 = new QName(gbdbsDatei21Ns,"DATASECTION");
     public static final QName VOLLBESTAND_21 = new QName(gbdbsDatei21Ns,"Vollbestand");
     private Marshaller ms = null;
     private ch.ehi.gbdbs4bfs.jaxb.gbbasistypen._2_1.ObjectFactory of=null;
-    private long personIdx=0;
     private Set<String> egbpids=new java.util.HashSet<String>();
 	public static boolean convert(
 			File fullFile,
@@ -125,7 +123,7 @@ public class Gbdbs4bfs {
 				logfile=new FileListener(new java.io.File(logFilename));
 				EhiLogger.getInstance().addListener(logfile);
 			}
-		    String appHome=settings.getValue(Gbdbs4bfs.SETTING_APPHOME);
+		    settings.getValue(Gbdbs4bfs.SETTING_APPHOME);
 		    		    
 		    // give user important info (such as input files or program version)
 			EhiLogger.logState(Main.APP_NAME+"-"+Main.getVersion());
@@ -160,14 +158,13 @@ public class Gbdbs4bfs {
 	}
     private void pass1(File fullFile) throws XMLStreamException, IOException, JAXBException {
         XMLInputFactory xmlif=null;
-        XMLEventFactory xmlef=null;
         Unmarshaller um=null;
         XMLEventReader xmlr = null;
         java.io.InputStream fullStream = null;
         try{
         	
             xmlif = XMLInputFactory.newInstance();
-            xmlef = XMLEventFactory.newInstance();
+            XMLEventFactory.newInstance();
               try {
                   JAXBContext jaxbContext = JAXBContext
                   .newInstance(JAXB_CONTEXT_PATH);
@@ -338,95 +335,24 @@ public class Gbdbs4bfs {
         }
     }
     private void convertPerson(JAXBElement<? extends PersonGBType> ele,XMLEventWriter out) throws JAXBException {
-        personIdx++;
-        JAXBElement<? extends PersonGBType> newele=null;
         if(ele.getValue() instanceof GemeinschaftType) {
-            GemeinschaftType val=new GemeinschaftType();
-            for(PersonRefBegruendet mitglied:((GemeinschaftType)ele.getValue()).getMitglieder()) {
+            GemeinschaftType val=(GemeinschaftType)ele.getValue();
+            for(PersonRefBegruendet mitglied:val.getMitglieder()) {
                 String nummer=mitglied.getRef();
                 PersonIdDefType berechtigteId = parseGbdbsPersId(nummer);
                 berechtigteId.setKantPersNr(null);
                 nummer=toString(berechtigteId);
                 mitglied.setRef(nummer);
-                val.getMitglieder().add(mitglied);
             }
-            newele=of.createGemeinschaft(val);
-        }else if(ele.getValue() instanceof JuristischePersonGBType) {
-            JuristischePersonGBType val=new JuristischePersonGBType();
-            newele=of.createJuristischePersonGB(val);
-            val.setPersonStamm(ele.getValue().getPersonStamm());
-        }else if(ele.getValue() instanceof NatuerlichePersonGBType) {
-            NatuerlichePersonGBType val=new NatuerlichePersonGBType();
-            newele=of.createNatuerlichePersonGB(val);
         }
-        if(newele!=null) {
-            for(JAXBElement<? extends InhaltPersonGBType> inhaltEle:ele.getValue().getInhaltPersonGB()) {
-                JAXBElement<? extends InhaltPersonGBType> newinhalt=null;
-                final InhaltPersonGBType inhalt = inhaltEle.getValue();
-                if(inhalt instanceof InhaltGemeinschaftType) {
-                    InhaltGemeinschaftType val=new InhaltGemeinschaftType();
-                    val.setVonEGBTBID(inhalt.getVonEGBTBID());
-                    val.setVonTagebuchDatumZeit(inhalt.getVonTagebuchDatumZeit());
-                    val.setVonTagebuchNummer(inhalt.getVonTagebuchNummer());
-                    val.setVonIdx(inhalt.getVonIdx());
-                    val.setBisEGBTBID(inhalt.getBisEGBTBID());
-                    val.setBisTagebuchDatumZeit(inhalt.getBisTagebuchDatumZeit());
-                    val.setBisTagebuchNummer(inhalt.getBisTagebuchNummer());
-                    val.setBisIdx(inhalt.getBisIdx());
-                    val.setName(((InhaltGemeinschaftType) inhalt).getName());
-                    val.setArt(((InhaltGemeinschaftType) inhalt).getArt());
-                    newinhalt=of.createInhaltGemeinschaft(val);
-                }else if(inhalt instanceof InhaltJuristischePersonGBType) {
-                    InhaltJuristischePersonGBType val=new InhaltJuristischePersonGBType();
-                    val.setVonEGBTBID(inhalt.getVonEGBTBID());
-                    val.setVonTagebuchDatumZeit(inhalt.getVonTagebuchDatumZeit());
-                    val.setVonTagebuchNummer(inhalt.getVonTagebuchNummer());
-                    val.setVonIdx(inhalt.getVonIdx());
-                    val.setBisEGBTBID(inhalt.getBisEGBTBID());
-                    val.setBisTagebuchDatumZeit(inhalt.getBisTagebuchDatumZeit());
-                    val.setBisTagebuchNummer(inhalt.getBisTagebuchNummer());
-                    val.setBisIdx(inhalt.getBisIdx());
-                    InhaltJuristischePersonGBType jp=(InhaltJuristischePersonGBType)inhalt;
-                    val.setUID(jp.getUID());
-                    val.setNameFirma(jp.getNameFirma());
-                    val.setRechtsformStichwort(jp.getRechtsformStichwort());
-                    val.setRechtsformZusatz(jp.getRechtsformZusatz());
-                    val.setSitz(jp.getSitz());
-                    val.setFirmennummer(jp.getFirmennummer());
-                    newinhalt=of.createInhaltJuristischePersonGB(val);
-                }else if(inhalt instanceof InhaltNatuerlichePersonGBType) {
-                    InhaltNatuerlichePersonGBType val=new InhaltNatuerlichePersonGBType();
-                    val.setVonEGBTBID(inhalt.getVonEGBTBID());
-                    val.setVonTagebuchDatumZeit(inhalt.getVonTagebuchDatumZeit());
-                    val.setVonTagebuchNummer(inhalt.getVonTagebuchNummer());
-                    val.setVonIdx(inhalt.getVonIdx());
-                    val.setBisEGBTBID(inhalt.getBisEGBTBID());
-                    val.setBisTagebuchDatumZeit(inhalt.getBisTagebuchDatumZeit());
-                    val.setBisTagebuchNummer(inhalt.getBisTagebuchNummer());
-                    val.setBisIdx(inhalt.getBisIdx());
-                    InhaltNatuerlichePersonGBType np=(InhaltNatuerlichePersonGBType)inhalt;
-                    val.setName(np.getName());
-                    val.setVornamen(np.getVornamen());
-                    val.setGeburtsjahr(np.getGeburtsjahr());
-                    val.setGeburtsmonat(np.getGeburtsmonat());
-                    val.setGeburtstag(np.getGeburtstag());
-                    //val.setGeschlecht(np.getGeschlecht());
-                    val.setHeimatort(np.getHeimatort());
-                    val.setStaatsangehoerigkeit(np.getStaatsangehoerigkeit());
-
-                    newinhalt=of.createInhaltNatuerlichePersonGB(val);
-                }
-                newele.getValue().getInhaltPersonGB().add(newinhalt);
-            }
             String nummer=ele.getValue().getNummer();
             PersonIdDefType berechtigteId = parseGbdbsPersId(nummer);
             if(egbpids.contains(berechtigteId.getEGBPID())) {
                 berechtigteId.setKantPersNr(null);
                 nummer=toString(berechtigteId);
             }
-            newele.getValue().setNummer(nummer);
-            ms.marshal(newele, out);
-        }
+            ele.getValue().setNummer(nummer);
+            ms.marshal(ele, out);
     }
     private void convertRecht(JAXBElement<? extends RechtType> value,XMLEventWriter out) throws JAXBException {
         if(value.getValue() instanceof EigentumAnteilType) {
@@ -438,45 +364,25 @@ public class Gbdbs4bfs {
                 eig.setBerechtigte(toString(berechtigteId));
             }
             ms.marshal(value, out);
+        }else if(value.getValue() instanceof DienstbarkeitType) {
+            DienstbarkeitType db=(DienstbarkeitType)value.getValue();
+            for(LastRechtDienstbarkeitType lr:db.getLastRechtDienstbarkeit()) {
+                for(BerechtigteRefBegruendet ber:lr.getBerechtigte()) {
+                    String berechtigteGbdbsId=ber.getRef();
+                    PersonIdDefType berechtigteId = parseGbdbsPersId(berechtigteGbdbsId);
+                    if(egbpids.contains(berechtigteId.getEGBPID())) {
+                        berechtigteId.setKantPersNr(null);
+                        ber.setRef(toString(berechtigteId));
+                    }
+                }
+            }
+            ms.marshal(value, out);
+        }else {
+            // ignore
         }
     }
     private void convertGrundstueck(JAXBElement<? extends GrundstueckType> ele,XMLEventWriter out) throws JAXBException {
-        JAXBElement<? extends GrundstueckType> newele=null;
-        if(ele.getValue() instanceof BergwerkType) {
-            BergwerkType val=new BergwerkType();
-            newele=of.createBergwerk(val);
-        }else if(ele.getValue() instanceof LiegenschaftType) {
-            LiegenschaftType val=new LiegenschaftType();
-            newele=of.createLiegenschaft(val);
-        }else if(ele.getValue() instanceof MiteigentumsAnteilType) {
-            if(ele.getValue() instanceof GewoehnlichesMiteigentumType) {
-                GewoehnlichesMiteigentumType val=new GewoehnlichesMiteigentumType();
-                newele=of.createGewoehnlichesMiteigentum(val);
-            }else if(ele.getValue() instanceof StockwerksEinheitType) {
-                StockwerksEinheitType val=new StockwerksEinheitType();
-                newele=of.createStockwerksEinheit(val);
-            }else {
-                MiteigentumsAnteilType val=new MiteigentumsAnteilType();
-                newele=of.createMiteigentumsAnteil(val);
-            }
-        }else if(ele.getValue() instanceof SelbstaendigesDauerndesRechtType) {
-            if(ele.getValue() instanceof GewoehnlichesSDRType) {
-                GewoehnlichesSDRType val=new GewoehnlichesSDRType();
-                newele=of.createGewoehnlichesSDR(val);
-            }else if(ele.getValue() instanceof KonzessionType) {
-                KonzessionType val=new KonzessionType();
-                newele=of.createKonzession(val);
-            }else {
-                SelbstaendigesDauerndesRechtType val=new SelbstaendigesDauerndesRechtType();
-                newele=of.createSelbstaendigesDauerndesRecht(val);
-            }
-        }
-        if(newele!=null) {
-            newele.getValue().setNummer(ele.getValue().getNummer());
-            newele.getValue().setIstKopie(ele.getValue().isIstKopie());
-            newele.getValue().setGemeinde(ele.getValue().getGemeinde());
-            ms.marshal(newele, out);
-        }
+        ms.marshal(ele, out);
     }
     private String getEGBPID(String gbdbsId) {
         String egbpid =parseGbdbsPersId(gbdbsId).getEGBPID();

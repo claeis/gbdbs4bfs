@@ -1,6 +1,10 @@
 LATEST VERSION
 -----------------------------
 
+1.3.0 2022-03-31
+-----------------------------
+- nur Grundpfandrechte, Grundlasten, Anmerkungen, Vormerkungen, Kant. Pers-ID filtern
+
 1.2.0 2021-06-08
 -----------------------------
 - JuristischePersonGB/PersonStamm nicht filtern
